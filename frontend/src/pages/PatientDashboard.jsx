@@ -33,6 +33,7 @@ const PatientDashboard = () => {
   const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(true)
   const [showBookForm, setShowBookForm] = useState(false)
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' })
   const [formData, setFormData] = useState({
     doctorId: '',
     appointmentDate: '',
@@ -41,6 +42,11 @@ const PatientDashboard = () => {
     symptoms: '',
     patientPhone: '',
   })
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type })
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000)
+  }
 
   useEffect(() => {
     fetchData()
@@ -95,9 +101,35 @@ const PatientDashboard = () => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {
       try {
         await appointmentService.cancelAppointment(appointmentId)
+        showNotification('Appointment cancelled')
         await fetchData()
       } catch (error) {
         console.error('Failed to cancel appointment:', error)
+        showNotification('Failed to cancel appointment', 'error')
+      }
+    }
+  }
+
+  const handleAccept = async (appointmentId) => {
+    try {
+      await appointmentService.acceptAppointment(appointmentId)
+      showNotification('You accepted the new appointment time!')
+      await fetchData()
+    } catch (error) {
+      console.error('Failed to accept appointment:', error)
+      showNotification('Failed to accept appointment', 'error')
+    }
+  }
+
+  const handleDecline = async (appointmentId) => {
+    if (window.confirm('Are you sure you want to decline this new time? The appointment will be cancelled.')) {
+      try {
+        await appointmentService.declineAppointment(appointmentId)
+        showNotification('Appointment declined and cancelled')
+        await fetchData()
+      } catch (error) {
+        console.error('Failed to decline appointment:', error)
+        showNotification('Failed to decline appointment', 'error')
       }
     }
   }
@@ -109,6 +141,15 @@ const PatientDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Notification */}
+      {notification.show && (
+        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
+          notification.type === 'error' ? 'bg-red-500' : 'bg-green-500'
+        } text-white font-medium`}>
+          {notification.message}
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -238,17 +279,19 @@ const PatientDashboard = () => {
         )}
 
         {/* Appointments List */}
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Your Appointments</h2>
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Upcoming Appointments</h2>
           {loading ? (
             <div className="text-center text-gray-600">Loading appointments...</div>
-          ) : appointments.length === 0 ? (
+          ) : appointments.filter(apt => apt.status !== 'cancelled' && apt.status !== 'completed' && new Date(apt.appointmentDate) >= new Date(new Date().toDateString())).length === 0 ? (
             <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-500">No appointments booked yet.</p>
+              <p className="text-gray-500">No upcoming appointments.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {appointments.map((apt) => (
+              {appointments
+                .filter(apt => apt.status !== 'cancelled' && apt.status !== 'completed' && new Date(apt.appointmentDate) >= new Date(new Date().toDateString()))
+                .map((apt) => (
                 <div key={apt.id} className="bg-white rounded-lg shadow p-6">
                   <div className="mb-4">
                     <p className="text-sm text-gray-500">Date & Time</p>
@@ -257,31 +300,56 @@ const PatientDashboard = () => {
                     </p>
                   </div>
                   <div className="mb-4">
-                    <p className="text-sm text-secondary">Reason</p>
-                    <p className="text-primary">{apt.reason}</p>
+                    <p className="text-sm text-gray-500">Doctor</p>
+                    <p className="text-gray-900 font-medium">{apt.doctorName || 'N/A'}</p>
                   </div>
                   <div className="mb-4">
-                    <p className="text-sm text-secondary">Status</p>
+                    <p className="text-sm text-gray-500">Reason</p>
+                    <p className="text-gray-900">{apt.reason}</p>
+                  </div>
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500">Status</p>
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-semibold ${
                         apt.status === 'confirmed'
-                          ? 'bg-success/10 text-success'
+                          ? 'bg-green-100 text-green-700'
                           : apt.status === 'cancelled'
-                            ? 'bg-danger/10 text-danger'
-                            : 'bg-warning/10 text-warning'
+                            ? 'bg-red-100 text-red-700'
+                            : apt.status === 'rescheduled'
+                              ? 'bg-blue-100 text-blue-600'
+                              : 'bg-yellow-100 text-yellow-700'
                       }`}
                     >
-                      {apt.status}
+                      {apt.status === 'rescheduled' ? 'Rescheduled by Doctor' : apt.status}
                     </span>
                   </div>
-                  {apt.status !== 'cancelled' && (
+                  {apt.status === 'rescheduled' && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700 font-medium">
+                        Your doctor has rescheduled this appointment. Please accept or decline the new time.
+                      </p>
+                    </div>
+                  )}
+                  {apt.status === 'rescheduled' ? (
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-primary hover:bg-primary/80 text-white py-2 px-4 rounded-lg text-sm">
-                        Reschedule
+                      <button
+                        onClick={() => handleAccept(apt.id)}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-semibold"
+                      >
+                        Accept
                       </button>
                       <button
+                        onClick={() => handleDecline(apt.id)}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-semibold"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  ) : apt.status !== 'cancelled' && apt.status !== 'confirmed' && (
+                    <div className="flex gap-2">
+                      <button
                         onClick={() => handleCancel(apt.id)}
-                        className="flex-1 bg-danger hover:bg-danger/80 text-white py-2 px-4 rounded-lg text-sm"
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm"
                       >
                         Cancel
                       </button>
@@ -289,6 +357,53 @@ const PatientDashboard = () => {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Appointment History */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Appointment History</h2>
+          {appointments.filter(apt => apt.status === 'cancelled' || apt.status === 'completed' || new Date(apt.appointmentDate) < new Date(new Date().toDateString())).length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-8 text-center">
+              <p className="text-gray-500">No appointment history yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {appointments
+                .filter(apt => apt.status === 'cancelled' || apt.status === 'completed' || new Date(apt.appointmentDate) < new Date(new Date().toDateString()))
+                .map((apt) => (
+                  <div key={apt.id} className="bg-white rounded-lg shadow p-6 opacity-75">
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-500">Date & Time</p>
+                      <p className="text-lg font-semibold text-gray-600">
+                        {new Date(apt.appointmentDate).toLocaleDateString()} at {formatTime(apt.appointmentTime)}
+                      </p>
+                    </div>
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-500">Reason</p>
+                      <p className="text-gray-700">{apt.reason}</p>
+                    </div>
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-500">Doctor</p>
+                      <p className="text-gray-700">{apt.doctorName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Status</p>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          apt.status === 'confirmed' || apt.status === 'completed'
+                            ? 'bg-green-100 text-green-700'
+                            : apt.status === 'cancelled'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {apt.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
             </div>
           )}
         </div>

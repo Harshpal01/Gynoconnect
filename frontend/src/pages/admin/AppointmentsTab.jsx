@@ -232,8 +232,6 @@ const AppointmentsTab = ({
   appointments, 
   doctors, 
   loading, 
-  onConfirm, 
-  onCancel, 
   onAddAppointment,
   showNotification 
 }) => {
@@ -304,7 +302,6 @@ const AppointmentsTab = ({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -334,26 +331,6 @@ const AppointmentsTab = ({
                     }`}>
                       {apt.status}
                     </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      {apt.status === 'pending' && (
-                        <button
-                          onClick={() => onConfirm(apt.id)}
-                          className="text-green-600 hover:text-green-800 text-sm font-medium"
-                        >
-                          Confirm
-                        </button>
-                      )}
-                      {apt.status !== 'cancelled' && (
-                        <button
-                          onClick={() => onCancel(apt.id)}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
                   </td>
                 </tr>
               ))}

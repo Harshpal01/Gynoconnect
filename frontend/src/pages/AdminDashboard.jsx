@@ -55,32 +55,6 @@ const AdminDashboard = () => {
     }
   }
 
-  const handleConfirm = async (appointmentId) => {
-    try {
-      await appointmentService.updateAppointment(appointmentId, { status: 'confirmed' })
-      showNotification('Appointment confirmed successfully!', 'success')
-      await fetchData()
-    } catch (error) {
-      console.error('Failed to confirm appointment:', error)
-      const errorMsg = error.response?.data?.message || 'Failed to confirm appointment'
-      showNotification(errorMsg, 'error')
-    }
-  }
-
-  const handleCancel = async (appointmentId) => {
-    if (window.confirm('Are you sure you want to cancel this appointment?')) {
-      try {
-        await appointmentService.cancelAppointment(appointmentId)
-        showNotification('Appointment cancelled successfully!', 'success')
-        await fetchData()
-      } catch (error) {
-        console.error('Failed to cancel appointment:', error)
-        const errorMsg = error.response?.data?.message || 'Failed to cancel appointment'
-        showNotification(errorMsg, 'error')
-      }
-    }
-  }
-
   // Doctor handlers
   const handleImageUpload = async (doctorId, file) => {
     if (!file) return
@@ -173,8 +147,6 @@ const AdminDashboard = () => {
               appointments={appointments}
               doctors={doctors}
               loading={loading}
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
               onAddAppointment={handleAddAppointment}
               showNotification={showNotification}
             />

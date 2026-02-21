@@ -357,7 +357,7 @@ router.put('/:id/reschedule', authMiddleware, async (req, res) => {
     }
 
     await pool.execute(
-      "UPDATE appointments SET appointment_date = ?, appointment_time = ?, status = 'pending' WHERE id = ?",
+      "UPDATE appointments SET appointment_date = ?, appointment_time = ?, status = 'rescheduled' WHERE id = ?",
       [appointmentDate, appointmentTime, req.params.id]
     );
 
@@ -402,6 +402,70 @@ router.put('/:id/reschedule', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Reschedule appointment error:', error);
     res.status(500).json({ message: 'Failed to reschedule appointment', error: error.message });
+  }
+});
+
+// Patient accepts rescheduled appointment
+router.put('/:id/accept', authMiddleware, async (req, res) => {
+  try {
+    // Update status to confirmed
+    await pool.execute(
+      "UPDATE appointments SET status = 'confirmed' WHERE id = ?",
+      [req.params.id]
+    );
+
+    // Notify doctor that patient accepted
+    const [rows] = await pool.execute(`
+      SELECT
+        a.*,
+        COALESCE(u.name, a.patient_name) as patient_name,
+        d.email as doctor_email,
+        d.name as doctor_name
+      FROM appointments a
+      LEFT JOIN users u ON a.patient_id = u.id
+      LEFT JOIN users d ON a.doctor_id = d.id
+      WHERE a.id = ?
+    `, [req.params.id]);
+
+    const apt = rows[0];
+    console.log(`Patient ${apt.patient_name} accepted rescheduled appointment for ${apt.appointment_date}`);
+
+    res.json({ message: 'Appointment accepted successfully' });
+  } catch (error) {
+    console.error('Accept appointment error:', error);
+    res.status(500).json({ message: 'Failed to accept appointment', error: error.message });
+  }
+});
+
+// Patient declines rescheduled appointment
+router.put('/:id/decline', authMiddleware, async (req, res) => {
+  try {
+    // Update status to cancelled
+    await pool.execute(
+      "UPDATE appointments SET status = 'cancelled' WHERE id = ?",
+      [req.params.id]
+    );
+
+    // Log decline
+    const [rows] = await pool.execute(`
+      SELECT
+        a.*,
+        COALESCE(u.name, a.patient_name) as patient_name,
+        d.email as doctor_email,
+        d.name as doctor_name
+      FROM appointments a
+      LEFT JOIN users u ON a.patient_id = u.id
+      LEFT JOIN users d ON a.doctor_id = d.id
+      WHERE a.id = ?
+    `, [req.params.id]);
+
+    const apt = rows[0];
+    console.log(`Patient ${apt.patient_name} declined rescheduled appointment for ${apt.appointment_date}`);
+
+    res.json({ message: 'Appointment declined' });
+  } catch (error) {
+    console.error('Decline appointment error:', error);
+    res.status(500).json({ message: 'Failed to decline appointment', error: error.message });
   }
 });
 

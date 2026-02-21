@@ -48,6 +48,8 @@ export const appointmentService = {
   updateAppointment: (id, data) => api.put(`/appointments/${id}`, data),
   cancelAppointment: (id) => api.put(`/appointments/${id}/cancel`),
   rescheduleAppointment: (id, data) => api.put(`/appointments/${id}/reschedule`, data),
+  acceptAppointment: (id) => api.put(`/appointments/${id}/accept`),
+  declineAppointment: (id) => api.put(`/appointments/${id}/decline`),
   getAvailableSlots: (date) => api.get(`/appointments/slots/${date}`),
 }
 
