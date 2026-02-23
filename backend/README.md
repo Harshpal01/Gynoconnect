@@ -11,15 +11,29 @@ npm install
 
 ### 2. Configure Environment
 
-Edit the `.env` file with your database and email settings:
+Copy the example environment file and edit it with your settings:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your credentials:
 
 ```
-PORT=5000
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=hospital_appointments
+# Database - Set your MySQL password
+DB_PASSWORD=your_mysql_password
+
+# JWT Secret - Generate a random string (e.g., use: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 JWT_SECRET=your_secret_key
+
+# Email (optional) - For Gmail, use App Password (not regular password)
+# Go to Google Account > Security > 2FA > App Passwords
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+
+# SMS (optional) - Africa's Talking API
+AT_USERNAME=your_username
+AT_API_KEY=your_api_key
 ```
 
 ### 3. Setup Database
