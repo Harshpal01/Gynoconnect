@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: gynoconnect-backend
+    env: node
+    plan: free
+    branch: main
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "5000"
+      - key: PGHOST
+        value: localhost
+      - key: PGPORT
+        value: "5432"
+      - key: PGUSER
+        value: postgres
+      - key: PGPASSWORD
+        fromSecret: PGPASSWORD
+      - key: PGDATABASE
+        value: hospital_appointments
+      - key: JWT_SECRET
+        fromSecret: JWT_SECRET
+      - key: JWT_EXPIRES_IN
+        value: "7d"
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USER
+        fromSecret: EMAIL_USER
+      - key: EMAIL_PASS
+        fromSecret: EMAIL_PASS
+      - key: AT_USERNAME
+        fromSecret: AT_USERNAME
+      - key: AT_API_KEY
+        fromSecret: AT_API_KEY
+      - key: ENABLE_SMS_NOTIFICATIONS
+        value: "false"
+      - key: ENABLE_EMAIL_NOTIFICATIONS
+        value: "true"
+
+  - type: static_site
+    name: gynoconnect-frontend
+    env: static
+    plan: free
+    branch: main
+    buildCommand: cd frontend && npm install && npm run build
+    publishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://gynoconnect-backend.onrender.com/api
+
+databases:
+  - name: gynoconnect-db
+    databaseName: hospital_appointments
+    plan: free
+    region: oregon

@@ -115,6 +115,36 @@ App runs at: `http://localhost:5173`
 
 ---
 
+## Deploying to Render
+This repository includes a `render.yaml` manifest that defines both the backend and frontend services plus a PostgreSQL database.
+
+### 1. Connect your repository
+1. Sign in to Render and create a new Web Service.
+2. Choose "Deploy from GitHub" and connect the `Harshpal01/Gynoconnect` repository.
+3. Render will detect `render.yaml` automatically.
+
+### 2. Configure secrets
+In Render, add the following environment secrets for the backend service:
+- `PGPASSWORD`
+- `JWT_SECRET`
+- `EMAIL_USER`
+- `EMAIL_PASS`
+- `AT_USERNAME`
+- `AT_API_KEY`
+
+The manifest already sets the database name to `hospital_appointments` and the backend port to `5000`.
+
+### 3. Frontend API URL
+The frontend uses `VITE_API_URL` to call the backend API. Update the value in Render if the backend service URL is different from:
+```
+https://gynoconnect-backend.onrender.com/api
+```
+
+### 4. Deploy
+After Render finishes building both services, your app should be available at the URLs Render assigns to the frontend and backend services.
+
+---
+
 ## Default Login Credentials
 
 Use these seeded accounts after database setup.
