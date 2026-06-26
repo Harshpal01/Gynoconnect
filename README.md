@@ -1,6 +1,6 @@
 # GynoConnect - Hospital Appointment System
 
-A comprehensive hospital appointment scheduling system built with Node.js, Express, MySQL, and React.
+A comprehensive hospital appointment scheduling system built with Node.js, Express, PostgreSQL, and React.
 
 ## Features
 
@@ -8,7 +8,7 @@ A comprehensive hospital appointment scheduling system built with Node.js, Expre
 - **Doctor Dashboard**: Manage appointments, confirm/cancel/reschedule patient bookings
 - **Admin Panel**: Oversee all appointments, manage doctors and users, generate reports
 - **Notifications**: Email and SMS reminders (24-hour and same-day)
-- **Real-time Status**: Track appointment status (pending, confirmed, rescheduled, cancelled)
+- **Role-based access**: separate admin, doctor, and patient flows
 
 ---
 
@@ -17,7 +17,7 @@ A comprehensive hospital appointment scheduling system built with Node.js, Expre
 Before you begin, ensure you have the following installed:
 
 - **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
-- **MySQL** (v8.0 or higher) - [Download](https://dev.mysql.com/downloads/)
+- **PostgreSQL** (v13 or higher) - [Download](https://www.postgresql.org/download/)
 - **Git** - [Download](https://git-scm.com/)
 
 ---
@@ -47,56 +47,55 @@ npm install
 
 ```bash
 cd backend
-cp .env.example .env
+copy .env.example .env
 ```
 
-Open `.env` in a text editor and configure:
+Open `backend/.env` in a text editor and configure the PostgreSQL settings:
 
 ```env
-# REQUIRED - Database Configuration
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=YOUR_MYSQL_PASSWORD    # <-- Change this to your MySQL password
-DB_NAME=hospital_appointments
+# Backend server
+PORT=5000
 
-# REQUIRED - JWT Secret (any random string)
-JWT_SECRET=your_secret_key_here
+# PostgreSQL
+PGHOST=localhost
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=YOUR_PG_PASSWORD
+PGDATABASE=hospital_appointments
 
-# OPTIONAL - Email Notifications (Gmail)
+# JWT
+JWT_SECRET=your_super_secret_jwt_key_change_in_production
+JWT_EXPIRES_IN=7d
+
+# Email settings
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
 EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password       # Use Gmail App Password, NOT your regular password
+EMAIL_PASS=your_app_password
 
-# OPTIONAL - SMS Notifications (Africa's Talking)
+# SMS settings
 AT_USERNAME=your_username
 AT_API_KEY=your_api_key
-ENABLE_SMS_NOTIFICATIONS=false     # Set to 'true' to enable
+ENABLE_SMS_NOTIFICATIONS=false
+ENABLE_EMAIL_NOTIFICATIONS=true
 ```
 
-#### How to Get Gmail App Password:
-1. Go to [Google Account Security](https://myaccount.google.com/security)
-2. Enable 2-Factor Authentication
-3. Go to "App Passwords"
-4. Generate a new app password for "Mail"
-5. Use that 16-character password in `EMAIL_PASS`
+> Note: `EMAIL_PASS` should be a Gmail App Password if you are using Gmail.
 
 ### 4. Setup Database
 
-**Option A: Using Command Line**
+The backend now uses PostgreSQL, so run the schema script with `psql` or pgAdmin.
+
+**Option A: Using psql**
 ```bash
-mysql -u root -p < config/init-db.sql
+psql -U postgres -f backend/config/init-db.sql
 ```
 
-**Option B: Using MySQL Workbench**
-1. Open MySQL Workbench
-2. Connect to your MySQL server
-3. File → Open SQL Script → Select `backend/config/init-db.sql`
-4. Execute the script
-
-**Run Migrations:**
-```bash
-cd backend
-node migrations/add_rescheduled_status.js
-```
+**Option B: Using pgAdmin**
+1. Open pgAdmin and connect to your PostgreSQL server.
+2. Create the `hospital_appointments` database if it does not already exist.
+3. Open `backend/config/init-db.sql`.
+4. Execute the script.
 
 ### 5. Start the Application
 
@@ -118,13 +117,16 @@ App runs at: `http://localhost:5173`
 
 ## Default Login Credentials
 
-| Role    | Email                          | Password   |
-|---------|--------------------------------|------------|
-| Admin   | scoviachepkemoi906@gmail.com   | admin123   |
-| Doctor  | drwanjiru@gynoconnect.com      | doctor123  |
-| Doctor  | drkamau@gynoconnect.com        | doctor123  |
-| Doctor  | drachieng@gynoconnect.com      | doctor123  |
-| Patient | (Register a new account)       | -          |
+Use these seeded accounts after database setup.
+
+| Role   | Email                         | Password |
+|--------|-------------------------------|----------|
+| Admin  | admin@example.com             | demo123  |
+| Doctor | doctor@example.com            | demo123  |
+| Doctor | sarahlangat@gmail.com         | demo123  |
+| Doctor | dominickipkorir@gmail.com     | demo123  |
+| Doctor | teddyochieng@gmail.com        | demo123  |
+| Patient| patient@example.com           | demo123  |
 
 ---
 
@@ -133,7 +135,7 @@ App runs at: `http://localhost:5173`
 ```
 ├── backend/
 │   ├── config/
-│   │   ├── database.js          # MySQL connection pool
+│   │   ├── database.js          # PostgreSQL connection pool
 │   │   └── init-db.sql          # Database schema
 │   ├── middleware/
 │   │   └── auth.js              # JWT authentication
@@ -158,12 +160,7 @@ App runs at: `http://localhost:5173`
 │   │   ├── components/          # Reusable UI components
 │   │   ├── context/             # React Context (Auth)
 │   │   ├── pages/               # Page components
-│   │   │   ├── AdminDashboard.jsx
-│   │   │   ├── DoctorDashboard.jsx
-│   │   │   ├── PatientDashboard.jsx
-│   │   │   └── ...
-│   │   ├── services/
-│   │   │   └── api.js           # Axios API client
+│   │   ├── services/            # API client
 │   │   └── App.jsx              # Main app with routing
 │   ├── package.json
 │   └── vite.config.js
@@ -212,9 +209,9 @@ App runs at: `http://localhost:5173`
 
 ### Database Connection Error
 ```
-Error: Access denied for user 'root'@'localhost'
+Error: password authentication failed for user "postgres"
 ```
-**Solution:** Check your `DB_PASSWORD` in `.env` matches your MySQL password.
+**Solution:** Verify `PGUSER`, `PGPASSWORD`, and `PGDATABASE` in `backend/.env`.
 
 ### Port Already in Use
 ```

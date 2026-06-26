@@ -42,10 +42,14 @@ router.get('/featured', async (req, res) => {
   try {
     const [rows] = await pool.execute(`
       SELECT id, name, specialty, profile_image, is_featured
-      FROM users 
-      WHERE role = 'doctor' AND is_featured = 1
+      FROM users
+      WHERE role = 'doctor'
+        AND CASE
+          WHEN COALESCE(is_featured::text, 'f') ~* '^(1|t|true|y|yes)$' THEN 1
+          ELSE 0
+        END = 1
       ORDER BY name
-      LIMIT 10
+      LIMIT 3
     `);
     
     res.json(rows.map(doc => ({
@@ -110,7 +114,7 @@ router.put('/:doctorId', authMiddleware, authorize('admin'), async (req, res) =>
     
     await pool.execute(
       "UPDATE users SET specialty = ?, is_featured = ? WHERE id = ? AND role = 'doctor'",
-      [specialty, isFeatured ? 1 : 0, req.params.doctorId]
+      [specialty, isFeatured, req.params.doctorId]
     );
     
     res.json({ message: 'Doctor updated successfully' });
@@ -129,7 +133,7 @@ router.get('/:doctorId/schedule', authMiddleware, async (req, res) => {
     );
 
     const [blockedSlots] = await pool.execute(
-      'SELECT * FROM blocked_slots WHERE doctor_id = ? AND blocked_date >= CURDATE()',
+      'SELECT * FROM blocked_slots WHERE doctor_id = ? AND blocked_date >= CURRENT_DATE',
       [req.params.doctorId]
     );
 
