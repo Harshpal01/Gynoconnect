@@ -3,16 +3,26 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const config = {
-  host: process.env.PGHOST || process.env.DB_HOST || 'localhost',
-  port: Number(process.env.PGPORT || process.env.DB_PORT || 5432),
-  user: process.env.PGUSER || process.env.DB_USER || 'postgres',
-  password: process.env.PGPASSWORD || process.env.DB_PASSWORD || '',
-  database: process.env.PGDATABASE || process.env.DB_NAME || 'hospital_appointments',
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 20000,
-};
+const connectionString = process.env.DATABASE_URL || process.env.PG_CONNECTION_STRING;
+
+const config = connectionString
+  ? {
+      connectionString,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 20000,
+    }
+  : {
+      host: process.env.PGHOST || process.env.DB_HOST || 'localhost',
+      port: Number(process.env.PGPORT || process.env.DB_PORT || 5432),
+      user: process.env.PGUSER || process.env.DB_USER || 'postgres',
+      password: process.env.PGPASSWORD || process.env.DB_PASSWORD || '',
+      database: process.env.PGDATABASE || process.env.DB_NAME || 'hospital_appointments',
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 20000,
+    };
 
 const pool = new Pool(config);
 
