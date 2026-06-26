@@ -1,9 +1,5 @@
 -- PostgreSQL Script for Hospital Appointment System
--- Run this in pgAdmin, psql, or any PostgreSQL client
-
-CREATE DATABASE hospital_appointments;
-
-\c hospital_appointments
+-- Run this against your target PostgreSQL database (for example: the Render database URL).
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
