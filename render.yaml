@@ -47,7 +47,8 @@ services:
     plan: free
     branch: main
     buildCommand: cd frontend && npm install && npm run build
-    publishPath: frontend/
+    publishPath: frontend/dist
+    envVars:
       - key: VITE_API_URL
         value: https://gynoconnect-backend.onrender.com/api
 
