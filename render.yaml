@@ -41,19 +41,21 @@ services:
       - key: ENABLE_EMAIL_NOTIFICATIONS
         value: "true"
 
-  - type: static_site
+  - type: web
     name: gynoconnect-frontend
-    env: static
+    env: node
     plan: free
     branch: main
     rootDirectory: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    startCommand: node server.js
     envVars:
       - key: NODE_VERSION
         value: 20.19.0
       - key: VITE_API_URL
         value: https://gynoconnect.onrender.com/api
+      - key: PORT
+        value: "3000"
 
 databases:
   - name: gynoconnect-db
