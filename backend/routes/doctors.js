@@ -242,4 +242,28 @@ router.delete('/:doctorId/blocked/:blockId', authMiddleware, authorize('doctor')
   }
 });
 
+// Delete doctor (admin only)
+router.delete('/:doctorId', authMiddleware, authorize('admin'), async (req, res) => {
+  try {
+    // Delete associated records first
+    await pool.execute('DELETE FROM blocked_slots WHERE doctor_id = ?', [req.params.doctorId]);
+    await pool.execute('DELETE FROM doctor_availability WHERE doctor_id = ?', [req.params.doctorId]);
+    
+    // Delete the doctor user account
+    const [result] = await pool.execute(
+      "DELETE FROM users WHERE id = ? AND role = 'doctor'",
+      [req.params.doctorId]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    
+    res.json({ message: 'Doctor deleted successfully' });
+  } catch (error) {
+    console.error('Delete doctor error:', error);
+    res.status(500).json({ message: 'Failed to delete doctor', error: error.message });
+  }
+});
+
 module.exports = router;

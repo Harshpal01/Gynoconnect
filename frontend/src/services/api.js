@@ -65,6 +65,7 @@ export const doctorService = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   updateDoctor: (doctorId, data) => api.put(`/doctors/${doctorId}`, data),
+  deleteDoctor: (doctorId) => api.delete(`/doctors/${doctorId}`),
 }
 
 // User APIs

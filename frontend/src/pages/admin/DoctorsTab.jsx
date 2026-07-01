@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://gynoconnect.onrender.com'
 
-const DoctorCard = ({ doctor, onImageUpload, onUpdateDoctor, uploadingImage }) => {
+const DoctorCard = ({ doctor, onImageUpload, onUpdateDoctor, onDeleteDoctor, uploadingImage }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [specialty, setSpecialty] = useState(doctor.specialty || '')
   const [isFeatured, setIsFeatured] = useState(doctor.isFeatured || false)
@@ -101,12 +101,20 @@ const DoctorCard = ({ doctor, onImageUpload, onUpdateDoctor, uploadingImage }) =
             <p className="text-sm text-[#5f6FFF] font-medium mb-3">
               {doctor.specialty || 'No specialty set'}
             </p>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm font-medium transition"
-            >
-              Edit Details
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm font-medium transition"
+              >
+                Edit Details
+              </button>
+              <button
+                onClick={() => onDeleteDoctor(doctor.id)}
+                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+              >
+                Delete
+              </button>
+            </div>
           </>
         )}
       </div>
@@ -114,7 +122,7 @@ const DoctorCard = ({ doctor, onImageUpload, onUpdateDoctor, uploadingImage }) =
   )
 }
 
-const DoctorsTab = ({ doctors, onImageUpload, onUpdateDoctor, uploadingImage }) => {
+const DoctorsTab = ({ doctors, onImageUpload, onUpdateDoctor, onDeleteDoctor, uploadingImage }) => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Manage Doctors</h1>
@@ -128,6 +136,7 @@ const DoctorsTab = ({ doctors, onImageUpload, onUpdateDoctor, uploadingImage }) 
               doctor={doctor}
               onImageUpload={onImageUpload}
               onUpdateDoctor={onUpdateDoctor}
+              onDeleteDoctor={onDeleteDoctor}
               uploadingImage={uploadingImage}
             />
           ))

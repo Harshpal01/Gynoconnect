@@ -88,6 +88,20 @@ const AdminDashboard = () => {
     }
   }
 
+  const handleDeleteDoctor = async (doctorId) => {
+    if (window.confirm('Are you sure you want to delete this doctor? This action cannot be undone.')) {
+      try {
+        await doctorService.deleteDoctor(doctorId)
+        await fetchData()
+        showNotification('Doctor deleted successfully!', 'success')
+      } catch (error) {
+        console.error('Failed to delete doctor:', error)
+        const errorMsg = error.response?.data?.message || 'Failed to delete doctor'
+        showNotification(errorMsg, 'error')
+      }
+    }
+  }
+
   // Stats
   const stats = {
     totalAppointments: appointments.length,
@@ -157,6 +171,7 @@ const AdminDashboard = () => {
               doctors={doctors}
               onImageUpload={handleImageUpload}
               onUpdateDoctor={handleUpdateDoctor}
+              onDeleteDoctor={handleDeleteDoctor}
               uploadingImage={uploadingImage}
             />
           )}
