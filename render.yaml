@@ -50,6 +50,8 @@ services:
     buildCommand: npm install && npm run build
     publishPath: dist
     envVars:
+      - key: NODE_VERSION
+        value: 20.19.0
       - key: VITE_API_URL
         value: https://gynoconnect-backend.onrender.com/api
 
