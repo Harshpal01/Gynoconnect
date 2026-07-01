@@ -6,6 +6,17 @@ import doctor2 from '../assets/doctor 2.png'
 import doctor3 from '../assets/doctor 3.png'
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+const defaultDoctorImages = [doctor1, doctor2, doctor3]
+
+const getDoctorImageSrc = (doctor, index) => {
+  if (doctor.profileImage) {
+    return typeof doctor.profileImage === 'string' && doctor.profileImage.startsWith('/uploads')
+      ? `${API_BASE}${doctor.profileImage}`
+      : doctor.profileImage
+  }
+
+  return defaultDoctorImages[index % defaultDoctorImages.length]
+}
 
 const LandingPage = () => {
   const [featuredDoctors, setFeaturedDoctors] = useState([])
@@ -178,17 +189,15 @@ const LandingPage = () => {
                 className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition group border hover:translate-y-[-5px]"
               >
                 <div className="h-48 lg:h-56 bg-[#EAEFFF] flex items-center justify-center relative">
-                  {doctor.profileImage ? (
-                    <img 
-                      src={`${API_BASE}${doctor.profileImage}`}
-                      alt={doctor.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 lg:w-28 lg:h-28 bg-white rounded-full flex items-center justify-center shadow-md">
-                      <span className="text-4xl lg:text-5xl font-bold text-[#5f6FFF]">{doctor.name.charAt(4)}</span>
-                    </div>
-                  )}
+                  <img
+                    src={getDoctorImageSrc(doctor, doctor.id - 1)}
+                    alt={doctor.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const fallbackImage = defaultDoctorImages[doctor.id ? (doctor.id - 1) % defaultDoctorImages.length : 0]
+                      e.target.src = fallbackImage
+                    }}
+                  />
                   {doctor.available && (
                     <div className="absolute top-3 right-3 lg:top-4 lg:right-4 flex items-center gap-1.5 bg-white px-2.5 py-1 lg:px-3 lg:py-1.5 rounded-full text-xs shadow-sm">
                       <span className="w-2 h-2 bg-green-500 rounded-full"></span>
