@@ -46,9 +46,8 @@ services:
     env: static
     plan: free
     branch: main
-    rootDirectory: frontend
-    buildCommand: npm install && npm run build
-    publishPath: dist
+    buildCommand: cd frontend && npm install && npm run build
+    publishPath: frontend/dist
     envVars:
       - key: NODE_VERSION
         value: 20.19.0
