@@ -72,12 +72,12 @@ const GuestLinks = ({ pathname, closeMenu }) => {
       <Link to="/about" className="text-gray-700 hover:text-[#5f6FFF] font-medium transition">
         ABOUT
       </Link>
-      <a
-        href="/login?role=admin"
+      <Link
+        to="/login?role=admin"
         className="text-gray-700 hover:text-[#5f6FFF] font-medium transition border border-gray-300 rounded-full px-4 py-1.5 text-sm"
       >
         Admin Panel
-      </a>
+      </Link>
     </>
   )
 }
