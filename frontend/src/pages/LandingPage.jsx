@@ -5,7 +5,7 @@ import doctor1 from '../assets/doctor 1.png'
 import doctor2 from '../assets/doctor 2.png'
 import doctor3 from '../assets/doctor 3.png'
 
-const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://gynoconnect-backend.onrender.com'
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://gynoconnect.onrender.com'
 const defaultDoctorImages = [doctor1, doctor2, doctor3]
 
 const getDoctorImageSrc = (doctor, index) => {
