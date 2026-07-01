@@ -274,3 +274,8 @@ This project is for educational purposes.
 ## Support
 
 For issues or questions, please open an issue on GitHub.
+
+## Design By
+Dominic Kipkorir
+
+pkoorddominc@gmail.com
