@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +19,7 @@ const notificationRoutes = require('./routes/notifications');
 const { initializeReminderScheduler } = require('./services/reminderScheduler');
 
 // Import database connection
-const { poolPromise } = require('./config/database');
+const { pool, poolPromise } = require('./config/database');
 
 const app = express();
 
@@ -55,7 +56,110 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
+async function seedDefaultUsers() {
+  try {
+    const defaultPassword = 'demo123';
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+    const seededUsers = [
+      {
+        name: 'John Patient',
+        email: 'patient@example.com',
+        password: hashedPassword,
+        role: 'patient',
+        phone: '0712345678',
+        specialty: null,
+        isFeatured: false,
+        profileImage: null,
+      },
+      {
+        name: 'Jane Admin',
+        email: 'admin@example.com',
+        password: hashedPassword,
+        role: 'admin',
+        phone: '0723456789',
+        specialty: null,
+        isFeatured: false,
+        profileImage: null,
+      },
+      {
+        name: 'Dr. Alex Morgan',
+        email: 'doctor@example.com',
+        password: hashedPassword,
+        role: 'doctor',
+        phone: '0734567890',
+        specialty: 'Gynecology',
+        isFeatured: true,
+        profileImage: '/uploads/doctors/doctor-1770741639473-909033715.png',
+      },
+      {
+        name: 'Dr. Sarah Langat',
+        email: 'sarahlangat@gmail.com',
+        password: hashedPassword,
+        role: 'doctor',
+        phone: '0712345678',
+        specialty: 'Gynecology',
+        isFeatured: true,
+        profileImage: '/uploads/doctors/doctor-1770741639473-909033715.png',
+      },
+      {
+        name: 'Dr. Dominic Kipkorir',
+        email: 'dominickipkorir@gmail.com',
+        password: hashedPassword,
+        role: 'doctor',
+        phone: '0723456789',
+        specialty: 'Obstetrics',
+        isFeatured: true,
+        profileImage: '/uploads/doctors/doctor-1770741655353-470129534.png',
+      },
+      {
+        name: 'Dr. Teddy Ochieng',
+        email: 'teddyochieng@gmail.com',
+        password: hashedPassword,
+        role: 'doctor',
+        phone: '0734567890',
+        specialty: 'Pediatrics',
+        isFeatured: true,
+        profileImage: '/uploads/doctors/doctor-1770741666703-796838445.png',
+      },
+    ];
+
+    for (const user of seededUsers) {
+      await pool.execute(
+        `INSERT INTO users (name, email, password, role, phone, specialty, is_featured, profile_image)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (email) DO UPDATE SET
+           name = EXCLUDED.name,
+           password = EXCLUDED.password,
+           role = EXCLUDED.role,
+           phone = EXCLUDED.phone,
+           specialty = EXCLUDED.specialty,
+           is_featured = EXCLUDED.is_featured,
+           profile_image = EXCLUDED.profile_image`,
+        [
+          user.name,
+          user.email,
+          user.password,
+          user.role,
+          user.phone,
+          user.specialty,
+          user.isFeatured,
+          user.profileImage,
+        ]
+      );
+    }
+
+    console.log('Default users verified');
+  } catch (error) {
+    console.error('Default users seeding failed:', error.message);
+  }
+}
+
 const PORT = process.env.PORT || 5000;
+
+seedDefaultUsers().catch((error) => {
+  console.error('Initial user seeding failed:', error.message);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

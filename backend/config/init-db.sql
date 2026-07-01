@@ -86,6 +86,10 @@ VALUES ('Jane Admin', 'admin@example.com', '$2a$10$u7Jw0v9LahJcW4VRGMBUbO2DDefD9
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO users (name, email, password, role, phone, specialty, is_featured, profile_image)
+VALUES ('Dr. Alex Morgan', 'doctor@example.com', '$2a$10$u7Jw0v9LahJcW4VRGMBUbO2DDefD9D3ADE3GxiHm8TgDCwNPjd5mO', 'doctor', '0734567890', 'Gynecology', TRUE, '/uploads/doctors/doctor-1770741639473-909033715.png')
+ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO users (name, email, password, role, phone, specialty, is_featured, profile_image)
 VALUES ('Dr. Sarah Langat', 'sarahlangat@gmail.com', '$2a$10$u7Jw0v9LahJcW4VRGMBUbO2DDefD9D3ADE3GxiHm8TgDCwNPjd5mO', 'doctor', '0712345678', 'Gynecology', TRUE, '/uploads/doctors/doctor-1770741639473-909033715.png')
 ON CONFLICT (email) DO NOTHING;
 
